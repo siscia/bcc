@@ -121,6 +121,7 @@ struct key_t {
     int user_stack_id;
     int kernel_stack_id;
     char name[TASK_COMM_LEN];
+    char path[125];
 };
 BPF_HASH(counts, struct key_t);
 BPF_HASH(start, u32);
@@ -161,6 +162,7 @@ int oncpu(struct pt_regs *ctx, struct task_struct *prev) {
     key.user_stack_id = USER_STACK_GET;
     key.kernel_stack_id = KERNEL_STACK_GET;
     bpf_get_current_comm(&key.name, sizeof(key.name));
+    strlcpy(&key.path, prev->mm->exe_file->f_path->d_name, 125);
 
     counts.increment(key, delta);
     return 0;
